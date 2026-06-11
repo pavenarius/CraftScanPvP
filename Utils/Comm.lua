@@ -36,6 +36,12 @@ local LibDeflate = LibStub('LibDeflate')
 
 local broadcastChannel = 'CraftScan'
 local CRAFT_SCAN_COMM_PREFIX = 'CRAFT_SCAN'
+
+local function IsInPvP()
+    local _, instanceType = GetInstanceInfo()
+    return instanceType == "pvp" or instanceType == "arena"
+end
+
 function CraftScanComm:OnEnable()
     self:RegisterComm(CRAFT_SCAN_COMM_PREFIX)
 
@@ -45,8 +51,10 @@ function CraftScanComm:OnEnable()
     -- event after it had happened, so we missed it and never registered. We
     -- only really need to do this once, so using a long ass wait should make it
     -- safe and only impacts the first login after upgrade.
-    C_Timer.After(60, function()
-        JoinChannelByName(broadcastChannel)
+	C_Timer.After(60, function()
+        if not InCombatLockdown() and not IsInPvP() then
+            JoinChannelByName(broadcastChannel)
+        end
     end)
 end
 
@@ -1265,6 +1273,9 @@ end
 local asyncPool = CreateFramePool('Frame', UIParent)
 
 function CraftScanComm:Transmit(data, operation, target)
+	-- SURGICAL DISABLE: Only block syncing if we are in PvP
+    if IsInPvP() then return end
+
     local msg = {
         operation = operation,
         version = CraftScan.CONST.CURRENT_VERSION,
@@ -1381,6 +1392,9 @@ local function ReceiveDeserialized(msg, sender)
 end
 
 function CraftScanComm:OnCommReceived(prefix, payload, distribution, sender)
+	-- SURGICAL DISABLE: Ignore incoming pings if we are in PvP
+    if IsInPvP() then return end
+
     if issecretvalue(payload) then return end
 
     CraftScan.Utils.printTable('Received from', sender)
