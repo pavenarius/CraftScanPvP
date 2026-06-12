@@ -38,20 +38,8 @@ local broadcastChannel = 'CraftScan'
 local CRAFT_SCAN_COMM_PREFIX = 'CRAFT_SCAN'
 
 local function IsInPvP()
-    local _, instanceType, difficultyID = GetInstanceInfo()
-    
-    -- Catch standard Battlegrounds and Arenas
-    if instanceType == "pvp" or instanceType == "arena" then
-        return true
-    end
-    
-    -- Catch Brawls and special PvP Scenarios (Cooking Impossible, Comp Stomp, Ashran, etc.)
-    -- Known PvP Difficulty IDs: 25 (World PvP), 29 (PvEvP), 32 (World PvP), 34 (PvP), 45 (PvP Scenario)
-    if difficultyID == 25 or difficultyID == 29 or difficultyID == 32 or difficultyID == 34 or difficultyID == 45 then
-        return true
-    end
-    
-    return false
+    local _, instanceType = GetInstanceInfo()
+    return instanceType == "pvp" or instanceType == "arena"
 end
 
 function CraftScanComm:OnEnable()
